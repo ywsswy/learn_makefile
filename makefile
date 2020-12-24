@@ -1,33 +1,31 @@
-bin2=test
-bin3=a.out
-
-obj=main.o class1.o
-obj2=test_class1.o
-
 CC=g++
-CXXFLAGS=-fPIC -g -O0 -fprofile-arcs -ftest-coverage -lgcov
-CFLAGS=-fPIC -g -O0 -fprofile-arcs -ftest-coverage -lgcov
+CXXFLAGS=-fPIC -g -O0 -std=c++11 -fprofile-arcs -ftest-coverage -lgcov -lgtest -lgmock -lstdc++ -lgtest_main -lpthread
+
+bin2=test
+bin=a.out
+
+obj2=test_class1.o class1.o
+obj=main.o class1.o
 
 .SUFFIXES: .cpp .cc .c
 .cpp.o:
-	gcc ${CXXFLAGS} -c $<
+	${CC} ${CXXFLAGS} -c $<
 .cc.o:
 	${CC} ${CXXFLAGS} -c $<
 .c.o:
-	gcc ${CFLAGS} -c $<
+	${CC} ${CFLAGS} -c $<
 
 $(bin2):$(obj2)
-	gcc ${CXXFLAGS} -o $(bin2) -lstdc++ -lgtest -lgtest_main -lgmock $(test) $?
-$(bin3):$(obj)
-	gcc -g -O0 -o $(bin3) -lstdc++ $(test) $?
-main.o:main.cc
-	gcc -g -O0 -c $?
-class1.o:class1.cc
-	gcc -g -O0 -c $?
-test_class1.o:test_class1.cc
-	gcc -g -O0 -std=c++11 $(test) -c $?
-
+	${CC} -o $@ ${CXXFLAGS} $?
+$(bin):$(obj)
+	${CC} -o $@ ${CXXFLAGS} $?
+check:
+	make ${bin2}
+	./${bin2}
+	lcov --directory . --capture --output-file t.info
+	lcov --remove t.info "/usr*" -o t.info
+	genhtml -o results t.info
 clean:
-	tp a.out test *.o *.gcno *.gcda results t.info 
+	tp ${bin} ${bin2} *.o *.gcno *.gcda results t.info 
 
 
